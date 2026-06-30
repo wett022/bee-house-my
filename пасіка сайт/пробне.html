@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Міні-крамничка з пасіки</title>
+    <style>
+        /* --- ЗАГАЛЬНІ СТИЛІ СТОРІНКИ --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fffdf0;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #fbc02d, #f57f17);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .profile-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .profile-img {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 4px solid white;
+            object-fit: cover;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            margin-bottom: 15px;
+        }
+
+        header h1 { margin: 5px 0; font-size: 2.2rem; }
+        header p { margin: 5px 0; font-style: italic; opacity: 0.9; font-size: 1.1rem; }
+
+        /* --- СЕКЦІЯ З ТОВАРАМИ --- */
+        .shop-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+            flex-grow: 1;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            width: 260px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 170px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .product-card h3 { margin: 10px 0; color: #d84315; font-size: 1.2rem; }
+        .price { font-weight: bold; color: #e65100; margin: 5px 0; }
+
+        .extra-info {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            font-size: 0.9rem;
+            color: #555;
+            line-height: 1.4;
+            transition: max-height 0.5s ease, opacity 0.5s ease, margin-top 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: scale(1.07);
+            box-shadow: 0 10px 20px rgba(216, 67, 21, 0.2);
+        }
+
+        .product-card:hover .extra-info {
+            max-height: 150px;
+            opacity: 1;
+            margin-top: 10px;
+        }
+
+        /* --- ПІДВАЛ (КОНТАКТИ) --- */
+        footer {
+            background-color: #2e2724;
+            color: #f57f17;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .footer-content h2 { color: #fff; margin-bottom: 15px; font-size: 1.5rem; }
+        .contact-links { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 15px; }
+        
+        .contact-button {
+            background-color: #f57f17;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .contact-button:hover { background-color: #fbc02d; color: #2e2724; transform: translateY(-2px); }
+
+
+        /* ==========================================================================
+           НОВИЙ БЛОК: КРУГЛА КНОПКА-ВІДЖЕТ ТА МОДАЛЬНЕ ВІКНО "ІСТОРІЯ ПАСІКИ"
+           ========================================================================== */
+
+        /* 1. Анімація потрясування (Вона спрацьовує автоматично кожні 5 секунд) */
+        @keyframes shakeEffect {
+            0%, 90%, 100% { transform: scale(1); }
+            91%, 95%, 99% { transform: scale(1.1) rotate(3deg); }
+            93%, 97% { transform: scale(1.1) rotate(-3deg); }
+        }
+
+        /* 2. Стиль плаваючої круглої кнопки */
+        .history-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background-color: #d84315; /* Яскравий бджолиний колір */
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000; /* Щоб кнопка завжди була поверх інших елементів */
+            user-select: none;
+            
+            /* Підключення анімації потрясування */
+            animation: shakeEffect 5s infinite ease-in-out;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .history-widget:hover {
+            background-color: #f57f17;
+            animation-play-state: paused; /* Зупиняє тряску, коли навели курсор */
+            transform: scale(1.15);
+        }
+
+        /* 3. Задній фон для модального вікна (напівпрозорий залівак) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Затемнення сайту */
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            /* Спочатку ховаємо вікно */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        /* Клас, який JavaScript додасть для відкриття вікна */
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 4. Саме маленьке віконце з текстом історії */
+        .modal-window {
+            background-color: #fffdf0;
+            width: 90%;
+            max-width: 450px; /* Маленький акуратний витяг */
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            border: 3px solid #f57f17;
+            position: relative;
+            
+            /* Ефект випливання вікна знизу догори */
+            transform: translateY(30px);
+            transition: transform 0.4s ease;
+        }
+
+        .modal-overlay.active .modal-window {
+            transform: translateY(0);
+        }
+
+        /* Кнопка закриття (хрестик) */
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            color: #777;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover { color: #d84315; }
+
+        .modal-window h2 {
+            margin-top: 0;
+            color: #d84315;
+            font-size: 1.5rem;
+            border-bottom: 2px dashed #f57f17;
+            padding-bottom: 8px;
+        }
+
+        .modal-window p {
+            line-height: 1.5;
+            font-size: 0.98rem;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="profile-container">
+            <img class="profile-img" src="https://images.unsplash.com/photo-1590779033100-9f60a05a013d?w=400" alt="Фото власника пасіки">
+            <h1>Моя Домашня Пасіка</h1>
+            <p>Вітаємо! Я бджоляр із багаторічним досвідом. Пропоную вам найчистіший, натуральний мед та корисні продукти бджільництва прямо з вулика.</p>
+        </div>
+    </header>
+
+    <main class="shop-container">
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400" alt="Мед">
+            <h3>Липовий мед</h3>
+            <p class="price">від 150 грн</p>
+            <div class="extra-info">Має світло-бурштиновий колір та неймовірний аромат квітучої липи. Незамінний помічник під час застуди.</div>
+        </div>
+
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400" alt="Мед">
+            <h3>Гречаний мед</h3>
+            <p class="price">від 160 грн</p>
+            <div class="extra-info">Темний, густий мед із терпким смаком та легкою гірчинкою. Багатий на залізо, чудово підходить для відновлення сил.</div>
+        </div>
+
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400" alt="Мед">
+            <h3>Акацієвий мед</h3>
+            <p class="price">від 180 грн</p>
+            <div class="extra-info">Найрідкісніший мед, який дуже довго не кристалізується. Має ніжний смак, гіпоалергенний.</div>
+        </div>
+
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1596733430284-f7437764b1a9?w=400" alt="Стільники">
+            <h3>Мед у стільниках</h3>
+            <p class="price">250 грн / кг</p>
+            <div class="extra-info">Натуральний мед безпосередньо у воскових комірках. Корисний для ясен, зубів та всієї дихальної системи.</div>
+        </div>
+
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1622484211148-71749c44b140?w=400" alt="Пилок">
+            <h3>Бджолиний пилок</h3>
+            <p class="price">80 грн / 100г</p>
+            <div class="extra-info">Природний концентрат вітамінів та амінокислот. Потужне джерело енергії, покращує обмін речовин.</div>
+        </div>
+
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1622484211148-71749c44b140?w=400" alt="Перга">
+            <h3>Бджолина перга</h3>
+            <p class="price">150 грн / 100г</p>
+            <div class="extra-info">"Бджолиний хліб" — ферментований пилок. Швидко відновлює сили після хвороб та стресів.</div>
+        </div>
+
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400" alt="Прополіс">
+            <h3>Настоянка прополісу</h3>
+            <p class="price">70 грн / 50мл</p>
+            <div class="extra-info">Натуральний антибіотик та антисептик. Має сильну протизапальну та загоювальну дію.</div>
+        </div>
+
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400" alt="Маточне молочко">
+            <h3>Маточне молочко</h3>
+            <p class="price">300 грн / 10г</p>
+            <div class="extra-info">Елітна продукція бджільництва. Омолоджує організм, покращує роботу мозку та пам'ять.</div>
+        </div>
+
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1590779033100-9f60a05a013d?w=400" alt="Забрус">
+            <h3>Бджолиний забрус</h3>
+            <p class="price">100 грн / 500г</p>
+            <div class="extra-info">Зрізані кришечки стільників. Містить суміш воску й прополісу. Натуральна «жуйка» від ангіни.</div>
+        </div>
+
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400" alt="Свічки">
+            <h3>Свічки з воску</h3>
+            <p class="price">від 50 грн / шт</p>
+            <div class="extra-info">Ручна робота зі 100% воску. При горінні очищають повітря та наповнюють кімнату ароматом меду.</div>
+        </div>
+
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400" alt="Подарунковий набір">
+            <h3>Подарункові набори</h3>
+            <p class="price">від 350 грн</p>
+            <div class="extra-info">Гарно оформлене асорті з різних видів меду, горішків у меду та воскових свічок. Корисний дарунок.</div>
+        </div>
+    </main>
+
+    <div class="history-widget" id="openWidget" title="Наша історія">🐝</div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-window">
+            <span class="close-modal" id="closeWidget">&times;</span>
+            <h2>Історія нашої пасіки</h2>
+            <p>Все почалося понад 20 років тому з двох невеликих вуликів, які мені подарував дідусь. Це було просто захоплення, але любов до бджіл та природи швидко переросла у справу всього життя.</p>
+            <p>Сьогодні наша пасіка налічує десятки сильних бджолосімей. Ми кочуємо екологічно чистими куточками краю, щоб збирати найкращі сорти меду. Головний наш принцип — абсолютна натуральність і збереження традицій бджільництва без жодної краплі хімії.</p>
+            <p>Дякуємо, що обираєте справжнє!</p>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <h2>Зв'яжіться з нами для замовлення:</h2>
+            <p>Ми завжди раді відповісти на ваші запитання та допомогти підібрати найкращі продукти!</p>
+            <div class="contact-links">
+                <a href="#" class="contact-button" target="_blank">Наш Instagram</a>
+                <a href="#" class="contact-button" target="_blank">Написати в Telegram</a>
+                <a href="tel:+380000000000" class="contact-button">Зателефонувати</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const openBtn = document.getElementById('openWidget');
+        const closeBtn = document.getElementById('closeWidget');
+        const overlay = document.getElementById('modalOverlay');
+
+        // Відкрити вікно при натисканні на бджілку
+        openBtn.addEventListener('click', () => {
+            overlay.classList.add('active');
+        });
+
+        // Закрити вікно при натисканні на хрестик
+        closeBtn.addEventListener('click', () => {
+            overlay.classList.remove('active');
+        });
+
+        // Закрити вікно, якщо користувач клікнув просто на темний фон навколо вікна
+        overlay.addEventListener('click', (event) => {
+            if (event.target === overlay) {
+                overlay.classList.remove('active');
+            }
+        });
+    </script>
+
+</body>
+</html>
